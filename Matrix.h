@@ -11,6 +11,7 @@ public:
 
     Matrix(const DataBlock &d);
     Matrix(DataBlock &&d);
+    Matrix(DataBlock *pD);
 
     Matrix(const Matrix &other);
     Matrix(Matrix &&other);
@@ -18,7 +19,18 @@ public:
     Matrix &operator=(const Matrix &other);
     Matrix &operator=(Matrix &&other);
 
+    void operator=(DataBlock *pD);
+
     ~Matrix();
+
+    DataBlock *operator+(const Matrix &other);
+    DataBlock *operator-(const Matrix &other);
+    DataBlock *operator*(const Matrix &other);
+
+    DataBlock *operator+(double d);
+    DataBlock *operator-(double d);
+    DataBlock *operator*(double d);
+    DataBlock *operator/(double d);
 
     DataBlock &t();
 

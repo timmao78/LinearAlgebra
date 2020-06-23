@@ -25,9 +25,19 @@ public:
 
     DataBlock &operator=(DataBlock &&other);
 
-    DataBlock &operator=(DataBlock *pD);
+    void operator=(DataBlock *pD);
+
+    DataBlock *operator+(const DataBlock &other);
+    DataBlock *operator-(const DataBlock &other);
+    DataBlock *operator*(const DataBlock &other);
+
+    DataBlock *operator+(double d);
+    DataBlock *operator-(double d);
+    DataBlock *operator*(double d);
+    DataBlock *operator/(double d);
 
     void resetI();
+    void clear();
 
     ~DataBlock();
 
@@ -47,8 +57,8 @@ public:
     void swapRows(unsigned int i, unsigned int j, unsigned int n);
     void swapCols(unsigned int i, unsigned int j);
 
-    unsigned int getNrow();
-    unsigned int getNcol();
+    unsigned int getNrow() const;
+    unsigned int getNcol() const;
 
     void setData(double d, unsigned int i, unsigned int j);
 

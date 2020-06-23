@@ -78,6 +78,11 @@ Matrix::Matrix(DataBlock &&d)
 {
 }
 
+Matrix::Matrix(DataBlock *pD)
+    : M(pD), T(), P(), L(), U(), R()
+{
+}
+
 Matrix::Matrix(const Matrix &other)
     : M(other.M), T(other.T), P(other.P), L(other.L), U(other.U), R(other.R)
 {
@@ -108,6 +113,16 @@ Matrix &Matrix::operator=(Matrix &&other)
     U = std::move(other.U);
     R = std::move(other.R);
     return *this;
+}
+
+void Matrix::operator=(DataBlock *pD)
+{
+    M = pD;
+    T.clear();
+    P.clear();
+    L.clear();
+    U.clear();
+    R.clear();
 }
 
 Matrix::~Matrix()
@@ -221,4 +236,39 @@ void Matrix::rref()
         R.backElim(currentPosition.first, currentPosition.second);
         // std::cout << R;
     }
+}
+
+DataBlock *Matrix::operator+(double d)
+{
+    return M + d;
+}
+
+DataBlock *Matrix::operator-(double d)
+{
+    return M - d;
+}
+
+DataBlock *Matrix::operator*(double d)
+{
+    return M * d;
+}
+
+DataBlock *Matrix::operator/(double d)
+{
+    return M / d;
+}
+
+DataBlock *Matrix::operator+(const Matrix &other)
+{
+    return M + other.M;
+}
+
+DataBlock *Matrix::operator-(const Matrix &other)
+{
+    return M - other.M;
+}
+
+DataBlock *Matrix::operator*(const Matrix &other)
+{
+    return M * other.M;
 }

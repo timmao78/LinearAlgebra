@@ -226,7 +226,7 @@ DataBlock &DataBlock::operator=(DataBlock &&other)
     return *this;
 }
 
-DataBlock &DataBlock::operator=(DataBlock *pD)
+void DataBlock::operator=(DataBlock *pD)
 {
     if (this != pD)
     {
@@ -248,7 +248,6 @@ DataBlock &DataBlock::operator=(DataBlock *pD)
         pD->ncol = 0;
         pD->data = nullptr;
     }
-    return *this;
 }
 
 DataBlock::~DataBlock()
@@ -277,6 +276,22 @@ void DataBlock::resetI()
                 data[i][j] = 1.0;
             else
                 data[i][j] = 0.0;
+}
+
+void DataBlock::clear()
+{
+    if (data != nullptr)
+    {
+#if DEBUG == 1
+        std::cout << "(DataBlock::clear)Freeing " << nrow * ncol * sizeof(double) << " bytes memory @" << data << "... done." << std::endl;
+#endif
+        for (unsigned int i = 0; i < nrow; i++)
+            delete[] data[i];
+        delete[] data;
+    }
+    data = nullptr;
+    nrow = 0;
+    ncol = 0;
 }
 
 bool DataBlock::empty() const
@@ -420,11 +435,12 @@ void DataBlock::swapCols(unsigned int i, unsigned int j)
     }
 }
 
-unsigned int DataBlock::getNrow()
+unsigned int DataBlock::getNrow() const
 {
     return nrow;
 }
-unsigned int DataBlock::getNcol()
+
+unsigned int DataBlock::getNcol() const
 {
     return ncol;
 }
@@ -432,4 +448,92 @@ unsigned int DataBlock::getNcol()
 void DataBlock::setData(double d, unsigned int i, unsigned int j)
 {
     data[i][j] = d;
+}
+
+DataBlock *DataBlock::operator+(double d)
+{
+    DataBlock *rslt = new DataBlock(nrow, ncol);
+    for (unsigned int i = 0; i < nrow; i++)
+        for (unsigned int j = 0; j < ncol; j++)
+            rslt->data[i][j] = data[i][j] + d;
+    return rslt;
+}
+
+DataBlock *DataBlock::operator-(double d)
+{
+    DataBlock *rslt = new DataBlock(nrow, ncol);
+    for (unsigned int i = 0; i < nrow; i++)
+        for (unsigned int j = 0; j < ncol; j++)
+            rslt->data[i][j] = data[i][j] - d;
+    return rslt;
+}
+
+DataBlock *DataBlock::operator*(double d)
+{
+    DataBlock *rslt = new DataBlock(nrow, ncol);
+    for (unsigned int i = 0; i < nrow; i++)
+        for (unsigned int j = 0; j < ncol; j++)
+            rslt->data[i][j] = data[i][j] * d;
+    return rslt;
+}
+
+DataBlock *DataBlock::operator/(double d)
+{
+    DataBlock *rslt = new DataBlock(nrow, ncol);
+    for (unsigned int i = 0; i < nrow; i++)
+        for (unsigned int j = 0; j < ncol; j++)
+            rslt->data[i][j] = data[i][j] / d;
+    return rslt;
+}
+
+DataBlock *DataBlock::operator+(const DataBlock &other)
+{
+    if (nrow != other.nrow || ncol != other.ncol)
+    {
+        std::cout << "Matrices don't match: " << nrow << "x" << ncol << " can't add up to " << other.nrow << "x" << other.ncol << std::endl;
+        throw 1;
+    }
+    else
+    {
+        DataBlock *rslt = new DataBlock(nrow, ncol);
+        for (unsigned int i = 0; i < nrow; i++)
+            for (unsigned int j = 0; j < ncol; j++)
+                rslt->data[i][j] = data[i][j] + other.data[i][j];
+        return rslt;
+    }
+}
+
+DataBlock *DataBlock::operator-(const DataBlock &other)
+{
+    if (nrow != other.nrow || ncol != other.ncol)
+    {
+        std::cout << "Matrices don't match: " << nrow << "x" << ncol << " can't subtract " << other.nrow << "x" << other.ncol << std::endl;
+        throw 1;
+    }
+    else
+    {
+        DataBlock *rslt = new DataBlock(nrow, ncol);
+        for (unsigned int i = 0; i < nrow; i++)
+            for (unsigned int j = 0; j < ncol; j++)
+                rslt->data[i][j] = data[i][j] - other.data[i][j];
+        return rslt;
+    }
+}
+
+DataBlock *DataBlock::operator*(const DataBlock &other)
+{
+    if (ncol != other.nrow)
+    {
+        std::cout << "Matrices don't match: " << nrow << "x" << ncol << " can't multiply " << other.nrow << "x" << other.ncol << std::endl;
+        throw 1;
+    }
+    else
+    {
+        DataBlock *rslt = new DataBlock(nrow, other.ncol);
+        for (int i = 0; i < nrow; i++)
+            for (int j = 0; j < other.ncol; j++)
+                for (int k = 0; k < ncol; k++)
+                    rslt->data[i][j] += data[i][k] * other.data[k][j];
+        return rslt;
+    }
 }
