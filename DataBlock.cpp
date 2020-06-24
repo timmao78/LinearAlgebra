@@ -2,6 +2,8 @@
 #include <vector>
 #include "DataBlock.h"
 
+DataBlock *DataBlock::temporary = nullptr;
+
 std::ostream &operator<<(std::ostream &stream, const DataBlock &d)
 {
     if (d.data == nullptr)
@@ -42,6 +44,7 @@ DataBlock::DataBlock()
 
 DataBlock::DataBlock(const char *str)
 {
+
     nrow = 0, ncol = 0;
     unsigned int ncolFirst = 0;
 
@@ -130,9 +133,9 @@ DataBlock::DataBlock(const DataBlock &other)
         for (unsigned int i = 0; i < nrow; i++)
             for (unsigned int j = 0; j < ncol; j++)
                 data[i][j] = other.data[i][j];
-#if DEBUG == 1
-        std::cout << "(Copy Constructor)Copying data... done." << std::endl;
-#endif
+        // #if DEBUG == 1
+        //         std::cout << "(Copy Constructor)Copying data... done." << std::endl;
+        // #endif
     }
 }
 
@@ -145,17 +148,6 @@ DataBlock::DataBlock(DataBlock &&other)
     other.nrow = 0;
     other.ncol = 0;
     other.data = nullptr;
-}
-
-DataBlock::DataBlock(DataBlock *pD)
-    : nrow(pD->nrow), ncol(pD->ncol), data(pD->data)
-{
-#if DEBUG == 1
-    std::cout << "(Pointer Constructor) No memory allocated, no data copied." << std::endl;
-#endif
-    pD->nrow = 0;
-    pD->ncol = 0;
-    pD->data = nullptr;
 }
 
 DataBlock &DataBlock::operator=(const DataBlock &other)
@@ -175,7 +167,7 @@ DataBlock &DataBlock::operator=(const DataBlock &other)
             nrow = 0;
             ncol = 0;
             data = nullptr;
-            std::cout << "(Copy Constructor)Source DataBlock object is empty. No memory allocated, no data copied." << std::endl;
+            std::cout << "(Assignment Operator)Source DataBlock object is empty. No memory allocated, no data copied." << std::endl;
         }
         else
         {
@@ -193,9 +185,9 @@ DataBlock &DataBlock::operator=(const DataBlock &other)
             for (unsigned int i = 0; i < nrow; i++)
                 for (unsigned int j = 0; j < ncol; j++)
                     data[i][j] = other.data[i][j];
-#if DEBUG == 1
-            std::cout << "(Assignment Operator)Copying data... done." << std::endl;
-#endif
+            // #if DEBUG == 1
+            //             std::cout << "(Assignment Operator)Copying data... done." << std::endl;
+            // #endif
         }
     }
     return *this;
@@ -205,49 +197,25 @@ DataBlock &DataBlock::operator=(DataBlock &&other)
 {
     if (this != &other)
     {
+        if (data != nullptr)
+        {
 #if DEBUG == 1
-        std::cout << "(Move Assignment Operator)Freeing " << nrow * ncol * sizeof(double) << " bytes memory @" << data << "... done." << std::endl;
+            std::cout << "(Move Assignment Operator)Freeing " << nrow * ncol * sizeof(double) << " bytes memory @" << data << "... done." << std::endl;
 #endif
-        for (unsigned int i = 0; i < nrow; i++)
-            delete[] data[i];
-        delete[] data;
+            for (unsigned int i = 0; i < nrow; i++)
+                delete[] data[i];
+            delete[] data;
+        }
 
         nrow = other.nrow;
         ncol = other.ncol;
         data = other.data;
 
-#if DEBUG == 1
-        std::cout << "(Move Assignment Operator) No memory allocated, no data copied." << std::endl;
-#endif
         other.nrow = 0;
         other.ncol = 0;
         other.data = nullptr;
     }
     return *this;
-}
-
-void DataBlock::operator=(DataBlock *pD)
-{
-    if (this != pD)
-    {
-#if DEBUG == 1
-        std::cout << "(Pointer Assignment Operator)Freeing " << nrow * ncol * sizeof(double) << " bytes memory @" << data << "... done." << std::endl;
-#endif
-        for (unsigned int i = 0; i < nrow; i++)
-            delete[] data[i];
-        delete[] data;
-
-        nrow = pD->nrow;
-        ncol = pD->ncol;
-        data = pD->data;
-
-#if DEBUG == 1
-        std::cout << "(Pointer Assignment Operator) No memory allocated, no data copied." << std::endl;
-#endif
-        pD->nrow = 0;
-        pD->ncol = 0;
-        pD->data = nullptr;
-    }
 }
 
 DataBlock::~DataBlock()
@@ -310,29 +278,36 @@ DataBlock::DataBlock(unsigned int nrow, unsigned int ncol)
 #endif
 }
 
-DataBlock *DataBlock::eye(unsigned int n)
+DataBlock &DataBlock::eye(unsigned int n)
 {
-    DataBlock *rslt = new DataBlock(n, n);
+    delete temporary;
+    temporary = new DataBlock(n, n);
 
     for (unsigned int i = 0; i < n; i++)
         for (unsigned int j = 0; j < n; j++)
             if (i == j)
-                rslt->data[i][j] = 1.0;
+                temporary->data[i][j] = 1.0;
             else
-                rslt->data[i][j] = 0.0;
+                temporary->data[i][j] = 0.0;
 
-    return rslt;
+    return *temporary;
 }
 
-DataBlock *DataBlock::t()
+DataBlock &DataBlock::t()
 {
-    DataBlock *rslt = new DataBlock(ncol, nrow);
+    if (data == nullptr)
+    {
+        std::cout << "(DataBlock::t) Can not transpose an empty DataBlock." << std::endl;
+        throw 1;
+    }
+    delete temporary;
+    temporary = new DataBlock(ncol, nrow);
 
     for (unsigned int i = 0; i < ncol; i++)
         for (unsigned int j = 0; j < nrow; j++)
-            rslt->data[i][j] = data[j][i];
+            temporary->data[i][j] = data[j][i];
 
-    return rslt;
+    return *temporary;
 }
 
 std::pair<unsigned int, double> DataBlock::maxPivotRow(unsigned int currentRow, unsigned int currentCol)
@@ -377,7 +352,7 @@ void DataBlock::backElim(unsigned int i, unsigned int j)
 void DataBlock::pivotU(unsigned int i, unsigned int j)
 {
     double r = data[i][j];
-    for (unsigned int k = j; k < ncol; k++)
+    for (unsigned int k = 0; k < ncol; k++)
         data[i][k] = data[i][k] / r;
 }
 
@@ -450,44 +425,49 @@ void DataBlock::setData(double d, unsigned int i, unsigned int j)
     data[i][j] = d;
 }
 
-DataBlock *DataBlock::operator+(double d)
+DataBlock &DataBlock::operator+(double d)
 {
-    DataBlock *rslt = new DataBlock(nrow, ncol);
+    delete temporary;
+    temporary = new DataBlock(nrow, ncol);
     for (unsigned int i = 0; i < nrow; i++)
         for (unsigned int j = 0; j < ncol; j++)
-            rslt->data[i][j] = data[i][j] + d;
-    return rslt;
+            temporary->data[i][j] = data[i][j] + d;
+    return *temporary;
 }
 
-DataBlock *DataBlock::operator-(double d)
+DataBlock &DataBlock::operator-(double d)
 {
-    DataBlock *rslt = new DataBlock(nrow, ncol);
+    delete temporary;
+    temporary = new DataBlock(nrow, ncol);
     for (unsigned int i = 0; i < nrow; i++)
         for (unsigned int j = 0; j < ncol; j++)
-            rslt->data[i][j] = data[i][j] - d;
-    return rslt;
+            temporary->data[i][j] = data[i][j] - d;
+    return *temporary;
 }
 
-DataBlock *DataBlock::operator*(double d)
+DataBlock &DataBlock::operator*(double d)
 {
-    DataBlock *rslt = new DataBlock(nrow, ncol);
+    delete temporary;
+    temporary = new DataBlock(nrow, ncol);
     for (unsigned int i = 0; i < nrow; i++)
         for (unsigned int j = 0; j < ncol; j++)
-            rslt->data[i][j] = data[i][j] * d;
-    return rslt;
+            temporary->data[i][j] = data[i][j] * d;
+    return *temporary;
 }
 
-DataBlock *DataBlock::operator/(double d)
+DataBlock &DataBlock::operator/(double d)
 {
-    DataBlock *rslt = new DataBlock(nrow, ncol);
+    delete temporary;
+    temporary = new DataBlock(nrow, ncol);
     for (unsigned int i = 0; i < nrow; i++)
         for (unsigned int j = 0; j < ncol; j++)
-            rslt->data[i][j] = data[i][j] / d;
-    return rslt;
+            temporary->data[i][j] = data[i][j] / d;
+    return *temporary;
 }
 
-DataBlock *DataBlock::operator+(const DataBlock &other)
+DataBlock &DataBlock::operator+(const DataBlock &other)
 {
+
     if (nrow != other.nrow || ncol != other.ncol)
     {
         std::cout << "Matrices don't match: " << nrow << "x" << ncol << " can't add up to " << other.nrow << "x" << other.ncol << std::endl;
@@ -495,15 +475,16 @@ DataBlock *DataBlock::operator+(const DataBlock &other)
     }
     else
     {
-        DataBlock *rslt = new DataBlock(nrow, ncol);
+        delete temporary;
+        temporary = new DataBlock(nrow, ncol);
         for (unsigned int i = 0; i < nrow; i++)
             for (unsigned int j = 0; j < ncol; j++)
-                rslt->data[i][j] = data[i][j] + other.data[i][j];
-        return rslt;
+                temporary->data[i][j] = data[i][j] + other.data[i][j];
+        return *temporary;
     }
 }
 
-DataBlock *DataBlock::operator-(const DataBlock &other)
+DataBlock &DataBlock::operator-(const DataBlock &other)
 {
     if (nrow != other.nrow || ncol != other.ncol)
     {
@@ -512,15 +493,16 @@ DataBlock *DataBlock::operator-(const DataBlock &other)
     }
     else
     {
-        DataBlock *rslt = new DataBlock(nrow, ncol);
+        delete temporary;
+        temporary = new DataBlock(nrow, ncol);
         for (unsigned int i = 0; i < nrow; i++)
             for (unsigned int j = 0; j < ncol; j++)
-                rslt->data[i][j] = data[i][j] - other.data[i][j];
-        return rslt;
+                temporary->data[i][j] = data[i][j] - other.data[i][j];
+        return *temporary;
     }
 }
 
-DataBlock *DataBlock::operator*(const DataBlock &other)
+DataBlock &DataBlock::operator*(const DataBlock &other)
 {
     if (ncol != other.nrow)
     {
@@ -529,11 +511,22 @@ DataBlock *DataBlock::operator*(const DataBlock &other)
     }
     else
     {
-        DataBlock *rslt = new DataBlock(nrow, other.ncol);
+        delete temporary;
+        temporary = new DataBlock(nrow, other.ncol);
         for (int i = 0; i < nrow; i++)
             for (int j = 0; j < other.ncol; j++)
+            {
+                temporary->data[i][j] = 0;
                 for (int k = 0; k < ncol; k++)
-                    rslt->data[i][j] += data[i][k] * other.data[k][j];
-        return rslt;
+                    temporary->data[i][j] += data[i][k] * other.data[k][j];
+            }
+
+        return *temporary;
     }
+}
+
+void DataBlock::freeTemp()
+{
+    delete temporary;
+    temporary = nullptr;
 }

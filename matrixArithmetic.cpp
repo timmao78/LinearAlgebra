@@ -3,6 +3,13 @@
 
 int main()
 {
+    {
+        Matrix m1 = " 8 1 6; 3 5 7; 4 9 2";
+        Matrix m2;
+        m2 = m1.t();
+        std::cout << m2;
+        DataBlock::freeTemp();
+    }
     // {
     //     Matrix m1 = " 8 1 6; 3 5 7; 4 9 2";
     //     std::cout << m1;
@@ -13,11 +20,11 @@ int main()
     //     m2 = m1 - 10;
     //     std::cout << m2;
 
-    //     m2 = m1 * 10;
-    //     std::cout << m2;
+    // m2 = m1 * 10;
+    // std::cout << m2;
 
-    //     m2 = m1 / 10;
-    //     std::cout << m2;
+    // m2 = m1 / 10;
+    // std::cout << m2;
     // }
 
     // {
@@ -68,19 +75,19 @@ int main()
     //     std::cout << m3;
     // }
 
-    {
-        Matrix m1 = " 1 2 3; 4 5 6";
-        std::cout << m1;
+    // {
+    //     Matrix m1 = " 1 2 3; 4 5 6";
+    //     std::cout << m1;
 
-        Matrix m2 = " 1 2; 3 4; 5 6";
-        std::cout << m2;
+    //     Matrix m2 = " 1 2; 3 4; 5 6";
+    //     std::cout << m2;
 
-        Matrix m3 = m1 * m2;
-        std::cout << m3;
+    //     Matrix m3 = m1 * m2;
+    //     std::cout << m3;
 
-        m3 = m2 * m1;
-        std::cout << m3;
-    }
+    //     m3 = m2 * m1;
+    //     std::cout << m3;
+    // }
 
     std::cin.get();
 

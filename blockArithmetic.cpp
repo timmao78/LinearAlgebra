@@ -18,6 +18,9 @@ int main()
 
     //     d2 = d1 / 10;
     //     std::cout << d2;
+
+    //     DataBlock::freeTemp();
+
     // }
 
     // {
@@ -64,6 +67,7 @@ int main()
         d3 = d2 * d1;
         std::cout << d3;
 
+        DataBlock::freeTemp();
     }
 
     std::cin.get();

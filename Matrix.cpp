@@ -21,13 +21,6 @@ operator<<(std::ostream &stream, const Matrix &m)
         stream << m.M;
     }
 
-    if (!m.T.empty())
-    {
-        stream << std::endl;
-        stream << "Transpose:" << std::endl;
-        stream << m.T;
-    }
-
     if (!m.P.empty())
     {
         stream << std::endl;
@@ -59,70 +52,53 @@ operator<<(std::ostream &stream, const Matrix &m)
 }
 
 Matrix::Matrix()
-    : M(), T(), P(), L(), U(), R()
+    : M(), P(), L(), U(), R()
 {
 }
 
 Matrix::Matrix(const char *str)
-    : M(str), T(), P(), L(), U(), R()
+    : M(str), P(), L(), U(), R()
 {
 }
 
 Matrix::Matrix(const DataBlock &d)
-    : M(d), T(), P(), L(), U(), R()
+    : M(d), P(), L(), U(), R()
 {
 }
 
 Matrix::Matrix(DataBlock &&d)
-    : M(std::move(d)), T(), P(), L(), U(), R()
-{
-}
-
-Matrix::Matrix(DataBlock *pD)
-    : M(pD), T(), P(), L(), U(), R()
+    : M(std::move(d)), P(), L(), U(), R()
 {
 }
 
 Matrix::Matrix(const Matrix &other)
-    : M(other.M), T(other.T), P(other.P), L(other.L), U(other.U), R(other.R)
+    : M(other.M), P(other.P), L(other.L), U(other.U), R(other.R)
 {
 }
 
 Matrix::Matrix(Matrix &&other)
-    : M(std::move(other.M)), T(std::move(other.T)), P(std::move(other.P)), L(std::move(other.L)), U(std::move(other.U)), R(std::move(other.R))
+    : M(std::move(other.M)), P(std::move(other.P)), L(std::move(other.L)), U(std::move(other.U)), R(std::move(other.R))
 {
 }
 
 Matrix &Matrix::operator=(const Matrix &other)
 {
     M = other.M;
-    T = other.T;
-    P = other.P;
-    L = other.L;
-    U = other.U;
-    R = other.R;
+    P.clear();
+    L.clear();
+    U.clear();
+    R.clear();
     return *this;
 }
 
 Matrix &Matrix::operator=(Matrix &&other)
 {
     M = std::move(other.M);
-    T = std::move(other.T);
-    P = std::move(other.P);
-    L = std::move(other.L);
-    U = std::move(other.U);
-    R = std::move(other.R);
-    return *this;
-}
-
-void Matrix::operator=(DataBlock *pD)
-{
-    M = pD;
-    T.clear();
     P.clear();
     L.clear();
     U.clear();
     R.clear();
+    return *this;
 }
 
 Matrix::~Matrix()
@@ -131,11 +107,7 @@ Matrix::~Matrix()
 
 DataBlock &Matrix::t()
 {
-    if (!M.empty() && T.empty())
-    {
-        T = M.t();
-    }
-    return T;
+    return M.t();
 }
 
 void Matrix::lu()
@@ -238,37 +210,37 @@ void Matrix::rref()
     }
 }
 
-DataBlock *Matrix::operator+(double d)
+DataBlock &Matrix::operator+(double d)
 {
     return M + d;
 }
 
-DataBlock *Matrix::operator-(double d)
+DataBlock &Matrix::operator-(double d)
 {
     return M - d;
 }
 
-DataBlock *Matrix::operator*(double d)
+DataBlock &Matrix::operator*(double d)
 {
     return M * d;
 }
 
-DataBlock *Matrix::operator/(double d)
+DataBlock &Matrix::operator/(double d)
 {
     return M / d;
 }
 
-DataBlock *Matrix::operator+(const Matrix &other)
+DataBlock &Matrix::operator+(const Matrix &other)
 {
     return M + other.M;
 }
 
-DataBlock *Matrix::operator-(const Matrix &other)
+DataBlock &Matrix::operator-(const Matrix &other)
 {
     return M - other.M;
 }
 
-DataBlock *Matrix::operator*(const Matrix &other)
+DataBlock &Matrix::operator*(const Matrix &other)
 {
     return M * other.M;
 }
